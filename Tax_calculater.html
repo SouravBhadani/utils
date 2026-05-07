@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaxLens — India Income Tax Calculator FY 2026–27</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --surface3: #1e1e2e;
+    --border: #2a2a3e;
+    --accent: #e8c547;
+    --accent2: #5e9eff;
+    --green: #4ade80;
+    --red: #f87171;
+    --text: #f0eff8;
+    --muted: #7a798f;
+    --old: #ff8c5a;
+    --new: #5e9eff;
+    --epf: #a78bfa;
+    --nps: #34d399;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(94,158,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(94,158,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1160px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+  header { padding: 48px 0 32px; text-align: center; }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent) 0%, #fff 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .subtitle { margin-top: 10px; color: var(--muted); font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+
+  .fy-badge {
+    display: inline-block; margin-top: 14px; padding: 4px 14px;
+    background: rgba(232,197,71,0.12); border: 1px solid rgba(232,197,71,0.3);
+    border-radius: 20px; font-size: 0.78rem; color: var(--accent);
+    font-family: 'DM Mono', monospace; letter-spacing: 0.05em;
+  }
+
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+
+  @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; position: relative; overflow: hidden;
+  }
+
+  .panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232,197,71,0.4), transparent);
+  }
+
+  .panel-title {
+    font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700;
+    margin-bottom: 22px; color: var(--text); display: flex; align-items: center; gap: 10px;
+  }
+
+  .panel-title .icon {
+    width: 30px; height: 30px; background: rgba(232,197,71,0.12);
+    border: 1px solid rgba(232,197,71,0.25); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+  }
+
+  .field-group { margin-bottom: 16px; }
+
+  .field-group label {
+    display: block; font-size: 0.78rem; font-weight: 500; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 7px;
+  }
+
+  .input-wrap { position: relative; }
+
+  .rupee {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--accent); font-family: 'DM Mono', monospace; font-size: 0.9rem; pointer-events: none;
+  }
+
+  .pct-suffix {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.85rem; pointer-events: none;
+  }
+
+  input[type="number"], select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 0.95rem; padding: 11px 12px 11px 28px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield; appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  select { padding-left: 12px; cursor: pointer; }
+  input.pct-input { padding-left: 12px; padding-right: 28px; }
+
+  input[type="number"]:focus, select:focus {
+    outline: none; border-color: rgba(232,197,71,0.5); box-shadow: 0 0 0 3px rgba(232,197,71,0.08);
+  }
+
+  .field-hint { margin-top: 5px; font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; line-height: 1.5; }
+  .field-hint.epf-hint { color: rgba(167,139,250,0.8); }
+  .field-hint.nps-hint { color: rgba(52,211,153,0.8); }
+
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  .section-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; margin-top: 6px; }
+  .section-label.default { color: var(--accent); }
+  .section-label.epf { color: var(--epf); }
+  .section-label.nps { color: var(--nps); }
+
+  .regime-tag {
+    display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.62rem;
+    font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; margin-left: 3px;
+  }
+  .regime-tag.both { background: rgba(255,255,255,0.08); color: var(--muted); }
+  .regime-tag.old-only { background: rgba(255,140,90,0.15); color: var(--old); }
+  .regime-tag.new-only { background: rgba(94,158,255,0.15); color: var(--new); }
+
+  /* Contribution cards */
+  .contrib-card {
+    background: var(--surface3); border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 14px; border: 1px solid var(--border);
+  }
+  .contrib-card.epf-card { border-left: 3px solid var(--epf); }
+  .contrib-card.nps-card { border-left: 3px solid var(--nps); }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-label { font-size: 0.85rem; color: var(--text); font-weight: 500; }
+
+  .toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute; inset: 0; background: var(--border);
+    border-radius: 22px; transition: 0.2s;
+  }
+  .slider::before {
+    content: ''; position: absolute; width: 16px; height: 16px;
+    left: 3px; top: 3px; background: var(--muted); border-radius: 50%; transition: 0.2s;
+  }
+  .toggle input:checked + .slider { background: rgba(232,197,71,0.25); }
+  .toggle input:checked + .slider::before { transform: translateX(18px); background: var(--accent); }
+
+  .toggle-fields { display: none; margin-top: 14px; }
+  .toggle-fields.active { display: block; }
+
+  .contrib-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
+
+  .computed-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-top: 1px solid var(--border); margin-top: 10px;
+  }
+  .computed-row span:first-child { font-size: 0.74rem; color: var(--muted); }
+  .computed-row span:last-child { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--text); }
+
+  /* BUTTON */
+  .calc-btn {
+    width: 100%; margin-top: 24px; padding: 15px; background: var(--accent);
+    color: #0a0a0f; border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 700; letter-spacing: 0.03em; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,197,71,0.25); }
+  .calc-btn:active { transform: translateY(0); }
+
+  /* RESULTS */
+  #results { display: none; margin-top: 24px; }
+
+  .regime-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 500px) { .regime-cards { grid-template-columns: 1fr; } }
+
+  .regime-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; position: relative; transition: border-color 0.3s;
+  }
+  .regime-card.winner { border-color: var(--green); box-shadow: 0 0 20px rgba(74,222,128,0.08); }
+  .regime-card .regime-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .regime-card.old-card .regime-label { color: var(--old); }
+  .regime-card.new-card .regime-label { color: var(--new); }
+  .regime-card .tax-amount { font-family: 'DM Mono', monospace; font-size: 1.6rem; font-weight: 500; color: var(--text); line-height: 1; }
+  .regime-card .tax-sub { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+
+  .winner-badge {
+    position: absolute; top: 12px; right: 12px; background: var(--green); color: #0a0a0f;
+    font-size: 0.62rem; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+
+  .recommendation {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 22px; margin-bottom: 20px; border-left: 3px solid var(--accent);
+  }
+  .rec-title { font-size: 0.72rem; color: var(--accent); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .rec-text { font-size: 0.93rem; color: var(--text); line-height: 1.6; }
+  .rec-saving { margin-top: 8px; font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--green); }
+
+  /* Chips */
+  .contrib-summary { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .contrib-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 11px; font-size: 0.77rem;
+  }
+  .contrib-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .contrib-chip .dot.epf { background: var(--epf); }
+  .contrib-chip .dot.nps { background: var(--nps); }
+  .contrib-chip .val { font-family: 'DM Mono', monospace; color: var(--text); }
+  .contrib-chip .lbl { color: var(--muted); }
+
+  /* Breakdown */
+  .breakdown { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
+
+  .breakdown-header {
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 11px 16px;
+    background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border);
+    font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em;
+  }
+
+  .breakdown-row {
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 9px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.83rem; transition: background 0.15s;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row:hover { background: rgba(255,255,255,0.02); }
+  .breakdown-row .label { color: var(--muted); }
+  .breakdown-row .val { font-family: 'DM Mono', monospace; font-size: 0.8rem; }
+  .breakdown-row .val.old { color: var(--old); }
+  .breakdown-row .val.new { color: var(--new); }
+  .breakdown-row.total-row { background: rgba(255,255,255,0.03); font-weight: 600; }
+  .breakdown-row.total-row .label { color: var(--text); }
+  .breakdown-row.epf-row .label { color: rgba(167,139,250,0.9); }
+  .breakdown-row.nps-row .label { color: rgba(52,211,153,0.9); }
+
+  /* Chart */
+  .chart-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .chart-title { font-size: 0.72rem; color: var(--muted); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 18px; }
+  .bar-group { margin-bottom: 14px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: var(--muted); }
+  .bar-label span:last-child { font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+  .bar-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.16,1,0.3,1); width: 0; }
+  .bar-fill.old { background: linear-gradient(90deg, var(--old), #ffc49e); }
+  .bar-fill.new { background: linear-gradient(90deg, var(--new), #a0c4ff); }
+
+  .surcharge-note {
+    background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2);
+    border-radius: 10px; padding: 12px 16px; font-size: 0.8rem; color: #fca5a5; margin-bottom: 16px; display: none;
+  }
+
+  .error-msg {
+    background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 10px; padding: 12px 16px; font-size: 0.85rem; color: var(--red); margin-top: 12px; display: none;
+  }
+
+  footer { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 0.78rem; line-height: 1.7; }
+
+
+  /* ═══ MONTHLY TAKE-HOME SECTION ═══ */
+  .section-full {
+    margin-top: 24px;
+  }
+
+  .takehome-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .takehome-panel::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(74,222,128,0.5), transparent);
+  }
+
+  .takehome-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+
+  .takehome-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .takehome-title .icon {
+    width: 30px; height: 30px; background: rgba(74,222,128,0.12);
+    border: 1px solid rgba(74,222,128,0.25); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+  }
+
+  /* Regime selector tabs */
+  .regime-tabs {
+    display: flex; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px;
+  }
+
+  .regime-tab {
+    padding: 6px 16px; border-radius: 7px; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--muted); transition: all 0.2s; letter-spacing: 0.03em;
+  }
+
+  .regime-tab.active-old { background: rgba(255,140,90,0.2); color: var(--old); }
+  .regime-tab.active-new { background: rgba(94,158,255,0.2); color: var(--new); }
+
+  /* Main monthly cards grid */
+  .monthly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .monthly-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+  }
+
+  .monthly-card .mc-label {
+    font-size: 0.72rem; color: var(--muted); font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px;
+  }
+
+  .monthly-card .mc-value {
+    font-family: 'DM Mono', monospace; font-size: 1.3rem; font-weight: 500; color: var(--text);
+  }
+
+  .monthly-card .mc-sub {
+    font-size: 0.72rem; color: var(--muted); margin-top: 4px;
+  }
+
+  .monthly-card.highlight-green { border-color: rgba(74,222,128,0.3); }
+  .monthly-card.highlight-green .mc-value { color: var(--green); }
+  .monthly-card.highlight-red { border-color: rgba(248,113,113,0.2); }
+  .monthly-card.highlight-red .mc-value { color: var(--red); }
+
+  /* Monthly breakdown table */
+  .monthly-breakdown {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 24px;
+  }
+
+  .mb-header {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border);
+    font-size: 0.7rem; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+
+  .mb-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    padding: 9px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.83rem;
+  }
+
+  .mb-row:last-child { border-bottom: none; }
+  .mb-row:hover { background: rgba(255,255,255,0.02); }
+  .mb-row .r-label { color: var(--muted); }
+  .mb-row .r-annual { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--text); }
+  .mb-row .r-monthly { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--accent); }
+  .mb-row.r-total { background: rgba(255,255,255,0.03); font-weight: 600; }
+  .mb-row.r-total .r-label { color: var(--text); }
+  .mb-row.r-deduction .r-label { color: var(--red); }
+  .mb-row.r-deduction .r-annual,
+  .mb-row.r-deduction .r-monthly { color: var(--red); }
+  .mb-row.r-takehome .r-label { color: var(--green); }
+  .mb-row.r-takehome .r-annual,
+  .mb-row.r-takehome .r-monthly { color: var(--green); }
+
+  /* ═══ ADHOC SECTION ═══ */
+  .adhoc-divider {
+    border: none; border-top: 1px solid var(--border); margin: 24px 0;
+  }
+
+  .adhoc-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  }
+
+  .adhoc-title .icon {
+    width: 26px; height: 26px; background: rgba(232,197,71,0.12);
+    border: 1px solid rgba(232,197,71,0.25); border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+  }
+
+  .adhoc-note {
+    background: rgba(232,197,71,0.06); border: 1px solid rgba(232,197,71,0.2);
+    border-radius: 10px; padding: 10px 14px; font-size: 0.78rem;
+    color: rgba(232,197,71,0.8); margin-bottom: 16px; line-height: 1.5;
+  }
+
+  .adhoc-inputs {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px;
+  }
+
+  @media (max-width: 600px) { .adhoc-inputs { grid-template-columns: 1fr 1fr; } }
+
+  .adhoc-btn {
+    padding: 11px 22px; background: rgba(232,197,71,0.15);
+    border: 1px solid rgba(232,197,71,0.3); border-radius: 10px;
+    color: var(--accent); font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem; font-weight: 600; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+
+  .adhoc-btn:hover { background: rgba(232,197,71,0.25); }
+
+  /* Adhoc result cards */
+  .adhoc-results {
+    display: none;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+
+  .adhoc-results.show { display: block; }
+
+  .adhoc-result-header {
+    padding: 12px 16px;
+    background: rgba(232,197,71,0.07); border-bottom: 1px solid var(--border);
+    font-size: 0.75rem; font-weight: 600; color: var(--accent);
+    letter-spacing: 0.07em; text-transform: uppercase;
+  }
+
+  .adhoc-cards-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0; border-bottom: 1px solid var(--border);
+  }
+
+  .adhoc-stat {
+    padding: 14px 16px; border-right: 1px solid var(--border);
+  }
+
+  .adhoc-stat:last-child { border-right: none; }
+
+  .adhoc-stat .as-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+  .adhoc-stat .as-value { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--text); }
+  .adhoc-stat.as-green .as-value { color: var(--green); }
+  .adhoc-stat.as-red .as-value { color: var(--red); }
+  .adhoc-stat.as-yellow .as-value { color: var(--accent); }
+
+  .adhoc-breakdown-table {
+    width: 100%;
+  }
+
+  .adhoc-breakdown-table .mb-row { grid-template-columns: 1fr 1fr 1fr; }
+
+  .adhoc-explanation {
+    padding: 12px 16px; font-size: 0.8rem; color: var(--muted);
+    border-top: 1px solid var(--border); line-height: 1.6;
+  }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: fadeUp 0.5s ease forwards; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">TaxLens</div>
+    <div class="subtitle">India Income Tax Calculator</div>
+    <div class="fy-badge">FY 2026–27 · AY 2027–28</div>
+  </header>
+
+  <div class="main-grid">
+    <!-- ═══ INPUT PANEL ═══ -->
+    <div class="panel">
+      <div class="panel-title"><span class="icon">₹</span> Income Details</div>
+
+      <div class="section-label default">Salary</div>
+      <div class="field-group">
+        <label>Annual Gross Salary</label>
+        <div class="input-wrap"><span class="rupee">₹</span>
+          <input type="number" id="grossSalary" placeholder="0" min="0" oninput="updateComputed()">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Basic Salary (Annual)</label>
+        <div class="input-wrap"><span class="rupee">₹</span>
+          <input type="number" id="basicSalary" placeholder="0" min="0" oninput="updateComputed()">
+        </div>
+        <div class="field-hint">Usually 40–50% of CTC</div>
+      </div>
+
+      <hr class="section-divider">
+      <div class="section-label default">HRA Details</div>
+      <div class="field-group">
+        <label>HRA Received (Annual)</label>
+        <div class="input-wrap"><span class="rupee">₹</span>
+          <input type="number" id="hraReceived" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Annual Rent Paid</label>
+        <div class="input-wrap"><span class="rupee">₹</span>
+          <input type="number" id="rentPaid" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>City Type</label>
+        <select id="cityType">
+          <option value="metro">Metro (Mumbai, Delhi, Kolkata, Chennai) — 50%</option>
+          <option value="nonmetro">Non-Metro — 40%</option>
+        </select>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ── EPF ── -->
+      <div class="section-label epf">EPF Contribution</div>
+      <div class="contrib-card epf-card">
+        <div class="toggle-row">
+          <span class="toggle-label">Enable EPF</span>
+          <label class="toggle">
+            <input type="checkbox" id="epfEnabled" onchange="toggleSection('epf')">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-fields" id="epfFields">
+          <div class="contrib-row">
+            <div class="field-group" style="margin-bottom:0">
+              <label>Employee % <span class="regime-tag old-only">80C · Old only</span></label>
+              <div class="input-wrap">
+                <input type="number" id="epfEmpPct" class="pct-input" placeholder="12" min="0" max="12" oninput="updateComputed()">
+                <span class="pct-suffix">%</span>
+              </div>
+              <div class="field-hint epf-hint">% of Basic · Max 12%<br>Deductible u/s 80C in Old regime only</div>
+            </div>
+            <div class="field-group" style="margin-bottom:0">
+              <label>Employer % <span class="regime-tag both">Both</span></label>
+              <div class="input-wrap">
+                <input type="number" id="epfErPct" class="pct-input" placeholder="12" min="0" max="12" oninput="updateComputed()">
+                <span class="pct-suffix">%</span>
+              </div>
+              <div class="field-hint epf-hint">% of Basic · Max 12%<br>Tax-exempt perquisite in both regimes</div>
+            </div>
+          </div>
+
+          <div class="computed-row"><span>Employee EPF (Annual)</span><span id="epfEmployeeAmt">₹0</span></div>
+          <div class="computed-row"><span>Employer EPF (Annual)</span><span id="epfEmployerAmt">₹0</span></div>
+          <div class="computed-row"><span>80C headroom left (after EPF)</span><span id="epf80cLeft">₹1,50,000</span></div>
+
+          <!-- New Regime EPF sub-controls -->
+          <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
+            <div style="font-size:0.7rem;color:var(--new);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">New Regime EPF Settings</div>
+
+            <div class="toggle-row" style="margin-bottom:10px;">
+              <div>
+                <span class="toggle-label" style="font-size:0.82rem;">Include Employer EPF exemption</span>
+                <div class="field-hint" style="margin-top:3px;">Employer share is a tax-free perquisite — toggles whether it reduces taxable income in new regime</div>
+              </div>
+              <label class="toggle" style="flex-shrink:0;margin-left:12px;">
+                <input type="checkbox" id="epfErNewEnabled" checked onchange="updateComputed()">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <span class="toggle-label" style="font-size:0.82rem;">Include Employee EPF in New Regime</span>
+                <div class="field-hint" style="margin-top:3px;">Employee EPF has no 80C benefit in new regime; toggle to see net income impact only</div>
+              </div>
+              <label class="toggle" style="flex-shrink:0;margin-left:12px;">
+                <input type="checkbox" id="epfEmpNewEnabled" onchange="updateComputed()">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="computed-row" id="rowEpfNewSummary">
+              <span>New regime EPF deduction applied</span>
+              <span id="epfNewDeductionAmt" style="color:var(--new);">₹0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── NPS ── -->
+      <div class="section-label nps">NPS Contribution <span class="regime-tag both">Both Regimes</span></div>
+      <div class="contrib-card nps-card">
+        <div class="toggle-row">
+          <span class="toggle-label">Enable NPS</span>
+          <label class="toggle">
+            <input type="checkbox" id="npsEnabled" onchange="toggleSection('nps')">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-fields" id="npsFields">
+          <div class="contrib-row">
+            <div class="field-group" style="margin-bottom:0">
+              <label>Employee %<span class="regime-tag old-only">80CCD(1B) Old</span></label>
+              <div class="input-wrap">
+                <input type="number" id="npsEmpPct" class="pct-input" placeholder="10" min="0" max="100" oninput="updateComputed()">
+                <span class="pct-suffix">%</span>
+              </div>
+              <div class="field-hint nps-hint">% of Gross salary<br>Old regime: extra ₹50K deduction u/s 80CCD(1B) beyond 80C</div>
+            </div>
+            <div class="field-group" style="margin-bottom:0">
+              <label>Employer %<span class="regime-tag both">Both</span></label>
+              <div class="input-wrap">
+                <input type="number" id="npsErPct" class="pct-input" placeholder="10" min="0" max="14" oninput="updateComputed()">
+                <span class="pct-suffix">%</span>
+              </div>
+              <div class="field-hint nps-hint">% of Basic salary<br>Old: u/s 80CCD(2) max 10% · New: max 14% of basic</div>
+            </div>
+          </div>
+          <div class="computed-row"><span>Employee NPS (Annual)</span><span id="npsEmployeeAmt">₹0</span></div>
+          <div class="computed-row"><span>Employer NPS (Annual)</span><span id="npsEmployerAmt">₹0</span></div>
+          <div class="computed-row"><span>80CCD(1B) deduction (Old only, max ₹50K)</span><span id="nps80ccd1bAmt">₹0</span></div>
+          <div class="computed-row"><span>80CCD(2) Old regime (max 10% of Basic)</span><span id="nps80ccd2OldAmt">₹0</span></div>
+          <div class="computed-row"><span>80CCD(2) New regime (max 14% of Basic)</span><span id="nps80ccd2NewAmt">₹0</span></div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <div class="section-label default">Other Deductions <span class="regime-tag old-only">Old Regime Only</span></div>
+
+      <div class="field-group">
+        <label>Section 80C (manual investments)</label>
+        <div class="input-wrap"><span class="rupee">₹</span>
+          <input type="number" id="sec80c" placeholder="0" min="0" oninput="updateComputed()">
+        </div>
+        <div class="field-hint">PPF, ELSS, LIC, etc. EPF employee share added automatically. Combined cap ₹1,50,000.</div>
+      </div>
+      <div class="field-group">
+        <label>Section 80D (Medical Insurance)</label>
+        <div class="input-wrap"><span class="rupee">₹</span>
+          <input type="number" id="sec80d" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Other Deductions</label>
+        <div class="input-wrap"><span class="rupee">₹</span>
+          <input type="number" id="otherDed" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <div class="error-msg" id="errorMsg">Please enter a valid gross salary greater than 0.</div>
+      <button class="calc-btn" onclick="calculate()">Calculate Tax →</button>
+    </div>
+
+    <!-- ═══ RESULTS PANEL ═══ -->
+    <div class="panel">
+      <div class="panel-title"><span class="icon">📊</span> Tax Analysis</div>
+
+      <div id="placeholder" style="color:var(--muted);font-size:0.9rem;line-height:1.9;padding-top:10px;">
+        Enter your income details and click <strong style="color:var(--accent)">Calculate Tax</strong>.
+        <br><br>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px;font-size:0.8rem;line-height:1.8;">
+          <div style="color:var(--epf);font-weight:700;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">EPF Tax Treatment</div>
+          <div style="color:var(--muted);">• Employee share → 80C deduction (Old regime only by default)</div>
+          <div style="color:var(--muted);">• Employer share → tax-free perquisite in both regimes</div>
+          <div style="color:var(--new);margin-top:4px;">• New regime: use sub-toggles to add/remove EPF employee &amp; employer deductions</div>
+          <br>
+          <div style="color:var(--nps);font-weight:700;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">NPS Tax Treatment</div>
+          <div style="color:var(--muted);">• Employee share → 80CCD(1B) extra ₹50K over 80C limit (Old only)</div>
+          <div style="color:var(--muted);">• Employer share → 80CCD(2) deduction allowed in <strong style="color:var(--text)">both</strong> regimes</div>
+          <div style="color:var(--muted);">&nbsp;&nbsp;Old regime: capped at 10% of Basic | New: capped at 14% of Basic</div>
+        </div>
+      </div>
+
+      <div id="results">
+        <div class="surcharge-note" id="surchargeNote">⚠️ Income exceeds ₹50L — surcharge & marginal relief applied.</div>
+
+        <div class="contrib-summary" id="contribSummary" style="display:none">
+          <div class="contrib-chip" id="chipEpfEmp" style="display:none">
+            <span class="dot epf"></span><span class="lbl">EPF Emp</span><span class="val" id="chipEpfEmpVal"></span>
+          </div>
+          <div class="contrib-chip" id="chipEpfEr" style="display:none">
+            <span class="dot epf"></span><span class="lbl">EPF Er</span><span class="val" id="chipEpfErVal"></span>
+          </div>
+          <div class="contrib-chip" id="chipNpsEmp" style="display:none">
+            <span class="dot nps"></span><span class="lbl">NPS Emp</span><span class="val" id="chipNpsEmpVal"></span>
+          </div>
+          <div class="contrib-chip" id="chipNpsEr" style="display:none">
+            <span class="dot nps"></span><span class="lbl">NPS Er</span><span class="val" id="chipNpsErVal"></span>
+          </div>
+        </div>
+
+        <div class="regime-cards">
+          <div class="regime-card old-card" id="oldCard">
+            <div class="regime-label">Old Regime</div>
+            <div class="tax-amount" id="oldTaxDisplay">₹0</div>
+            <div class="tax-sub">Total tax payable</div>
+          </div>
+          <div class="regime-card new-card" id="newCard">
+            <div class="regime-label">New Regime</div>
+            <div class="tax-amount" id="newTaxDisplay">₹0</div>
+            <div class="tax-sub">Total tax payable</div>
+          </div>
+        </div>
+
+        <div class="recommendation">
+          <div class="rec-title">Recommendation</div>
+          <div class="rec-text" id="recText">—</div>
+          <div class="rec-saving" id="recSaving"></div>
+        </div>
+
+        <div class="breakdown">
+          <div class="breakdown-header">
+            <span>Component</span><span>Old Regime</span><span>New Regime</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">Gross Income</span>
+            <span class="val old" id="bGrossOld">—</span>
+            <span class="val new" id="bGrossNew">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">Standard Deduction</span>
+            <span class="val old">₹50,000</span>
+            <span class="val new">₹75,000</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">HRA Exemption</span>
+            <span class="val old" id="bHraOld">—</span>
+            <span class="val new">—</span>
+          </div>
+          <div class="breakdown-row epf-row" id="rowEpfEmp">
+            <span class="label">EPF Employee (80C · Old only)</span>
+            <span class="val old" id="bEpfEmp">—</span>
+            <span class="val new">—</span>
+          </div>
+          <div class="breakdown-row epf-row" id="rowEpfEmpNew">
+            <span class="label">EPF Employee (New regime net)</span>
+            <span class="val old">—</span>
+            <span class="val new" id="bEpfEmpNew" style="color:var(--new)">—</span>
+          </div>
+          <div class="breakdown-row epf-row" id="rowEpfEr">
+            <span class="label">EPF Employer (tax-free perquisite)</span>
+            <span class="val old" id="bEpfErOld">—</span>
+            <span class="val new" id="bEpfErNew">—</span>
+          </div>
+          <div class="breakdown-row nps-row" id="rowNps80ccd1b">
+            <span class="label">NPS Emp 80CCD(1B) extra</span>
+            <span class="val old" id="bNps1bOld">—</span>
+            <span class="val new">—</span>
+          </div>
+          <div class="breakdown-row nps-row" id="rowNps80ccd2">
+            <span class="label">NPS Er 80CCD(2)</span>
+            <span class="val old" id="bNps2Old">—</span>
+            <span class="val new" id="bNps2New">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">80C (investments) + 80D + Other</span>
+            <span class="val old" id="bOtherDed">—</span>
+            <span class="val new">—</span>
+          </div>
+          <div class="breakdown-row total-row">
+            <span class="label">Taxable Income</span>
+            <span class="val old" id="bTaxableOld">—</span>
+            <span class="val new" id="bTaxableNew">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">Base Tax</span>
+            <span class="val old" id="bBaseTaxOld">—</span>
+            <span class="val new" id="bBaseTaxNew">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">Rebate (87A)</span>
+            <span class="val old" id="bRebateOld">—</span>
+            <span class="val new" id="bRebateNew">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">Surcharge</span>
+            <span class="val old" id="bSurchargeOld">—</span>
+            <span class="val new" id="bSurchargeNew">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="label">Cess (4%)</span>
+            <span class="val old" id="bCessOld">—</span>
+            <span class="val new" id="bCessNew">—</span>
+          </div>
+          <div class="breakdown-row total-row">
+            <span class="label">Total Tax</span>
+            <span class="val old" id="bTotalOld">—</span>
+            <span class="val new" id="bTotalNew">—</span>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-title">Visual Comparison</div>
+          <div class="bar-group">
+            <div class="bar-label"><span style="color:var(--old)">Old Regime</span><span id="chartOldLabel">₹0</span></div>
+            <div class="bar-track"><div class="bar-fill old" id="barOld"></div></div>
+          </div>
+          <div class="bar-group">
+            <div class="bar-label"><span style="color:var(--new)">New Regime</span><span id="chartNewLabel">₹0</span></div>
+            <div class="bar-track"><div class="bar-fill new" id="barNew"></div></div>
+          </div>
+          <div style="margin-top:12px;font-size:0.75rem;color:var(--muted);">Bars are proportional to each other.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ MONTHLY TAKE-HOME + ADHOC SECTION ═══ -->
+  <div class="section-full" id="takeHomeSectionWrap" style="display:none">
+    <div class="takehome-panel">
+
+      <div class="takehome-header">
+        <div class="takehome-title">
+          <span class="icon">💰</span>
+          Monthly Take-Home Calculator
+        </div>
+        <div class="regime-tabs">
+          <button class="regime-tab active-old" id="tabOld" onclick="switchRegimeTab('old')">Old Regime</button>
+          <button class="regime-tab" id="tabNew" onclick="switchRegimeTab('new')">New Regime</button>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="monthly-grid">
+        <div class="monthly-card">
+          <div class="mc-label">Gross Annual CTC</div>
+          <div class="mc-value" id="thGross">—</div>
+          <div class="mc-sub">Before deductions & tax</div>
+        </div>
+        <div class="monthly-card highlight-red">
+          <div class="mc-label">Annual Tax Payable</div>
+          <div class="mc-value" id="thAnnualTax">—</div>
+          <div class="mc-sub">Incl. cess & surcharge</div>
+        </div>
+        <div class="monthly-card highlight-red">
+          <div class="mc-label">Monthly TDS</div>
+          <div class="mc-value" id="thMonthlyTDS">—</div>
+          <div class="mc-sub">Tax ÷ 12 months</div>
+        </div>
+        <div class="monthly-card highlight-green">
+          <div class="mc-label">Monthly Take-Home</div>
+          <div class="mc-value" id="thMonthlyNet">—</div>
+          <div class="mc-sub">After all deductions</div>
+        </div>
+        <div class="monthly-card">
+          <div class="mc-label">Effective Tax Rate</div>
+          <div class="mc-value" id="thEffRate">—</div>
+          <div class="mc-sub">Tax ÷ Gross income</div>
+        </div>
+      </div>
+
+      <!-- Monthly Breakdown Table -->
+      <div class="monthly-breakdown">
+        <div class="mb-header">
+          <span>Component</span>
+          <span>Annual</span>
+          <span>Per Month</span>
+        </div>
+        <div class="mb-row">
+          <span class="r-label">Gross Salary (CTC)</span>
+          <span class="r-annual" id="mbGrossA">—</span>
+          <span class="r-monthly" id="mbGrossM">—</span>
+        </div>
+        <div class="mb-row r-deduction" id="mbEpfEmpRow">
+          <span class="r-label">− EPF (Employee)</span>
+          <span class="r-annual" id="mbEpfEmpA">—</span>
+          <span class="r-monthly" id="mbEpfEmpM">—</span>
+        </div>
+        <div class="mb-row r-deduction" id="mbNpsEmpRow">
+          <span class="r-label">− NPS (Employee)</span>
+          <span class="r-annual" id="mbNpsEmpA">—</span>
+          <span class="r-monthly" id="mbNpsEmpM">—</span>
+        </div>
+        <div class="mb-row r-deduction">
+          <span class="r-label">− TDS (Monthly)</span>
+          <span class="r-annual" id="mbTdsA">—</span>
+          <span class="r-monthly" id="mbTdsM">—</span>
+        </div>
+        <div class="mb-row r-deduction" id="mbProfTaxRow">
+          <span class="r-label">− Professional Tax</span>
+          <span class="r-annual" id="mbProfTaxA">—</span>
+          <span class="r-monthly" id="mbProfTaxM">—</span>
+        </div>
+        <div class="mb-row r-total">
+          <span class="r-label">Total Deductions</span>
+          <span class="r-annual" id="mbTotalDedA">—</span>
+          <span class="r-monthly" id="mbTotalDedM">—</span>
+        </div>
+        <div class="mb-row r-takehome">
+          <span class="r-label">💚 Net Take-Home</span>
+          <span class="r-annual" id="mbNetA">—</span>
+          <span class="r-monthly" id="mbNetM">—</span>
+        </div>
+      </div>
+
+      <!-- Professional Tax input -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:7px;">Professional Tax (Annual)</div>
+          <div class="input-wrap">
+            <span class="rupee">₹</span>
+            <input type="number" id="profTax" placeholder="2400" min="0" max="2500" oninput="renderTakeHome()" style="width:100%">
+          </div>
+          <div class="field-hint">State-specific, typically ₹200/month. Deductible in Old regime.</div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:7px;">Other Monthly Deductions</div>
+          <div class="input-wrap">
+            <span class="rupee">₹</span>
+            <input type="number" id="otherMonthlyDed" placeholder="0" min="0" oninput="renderTakeHome()" style="width:100%">
+          </div>
+          <div class="field-hint">Health insurance, meal card, etc.</div>
+        </div>
+      </div>
+
+      <!-- ═══ ADHOC INCOME ═══ -->
+      <hr class="adhoc-divider">
+
+      <div class="adhoc-title">
+        <span class="icon">⚡</span>
+        Adhoc Income Simulator
+      </div>
+
+      <div class="adhoc-note">
+        Bonus, incentive, arrears or any one-time payment received in a single month.
+        This simulates how TDS is recalculated for that month using the <strong>projected annual income method</strong>
+        — your employer grosses up the extra income to estimate your revised annual tax.
+      </div>
+
+      <div class="adhoc-inputs">
+        <div>
+          <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:7px;">Adhoc Amount</div>
+          <div class="input-wrap">
+            <span class="rupee">₹</span>
+            <input type="number" id="adhocAmount" placeholder="100000" min="0" style="width:100%">
+          </div>
+          <div class="field-hint">One-time bonus / arrears / incentive</div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:7px;">Received in Month</div>
+          <select id="adhocMonth" style="padding-left:12px;width:100%">
+            <option value="1">April (Month 1)</option>
+            <option value="2">May (Month 2)</option>
+            <option value="3">June (Month 3)</option>
+            <option value="4">July (Month 4)</option>
+            <option value="5">August (Month 5)</option>
+            <option value="6">September (Month 6)</option>
+            <option value="7">October (Month 7)</option>
+            <option value="8">November (Month 8)</option>
+            <option value="9">December (Month 9)</option>
+            <option value="10">January (Month 10)</option>
+            <option value="11">February (Month 11)</option>
+            <option value="12">March (Month 12)</option>
+          </select>
+          <div class="field-hint">Indian FY: April = Month 1</div>
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:22px;">
+          <button class="adhoc-btn" onclick="calcAdhoc()">Simulate →</button>
+        </div>
+      </div>
+
+      <div class="adhoc-results" id="adhocResults">
+        <div class="adhoc-result-header" id="adhocResultHeader">Adhoc Month Simulation</div>
+        <div class="adhoc-cards-grid">
+          <div class="adhoc-stat">
+            <div class="as-label">Adhoc Amount</div>
+            <div class="as-value" id="adAmt">—</div>
+          </div>
+          <div class="adhoc-stat as-red">
+            <div class="as-label">Extra TDS this month</div>
+            <div class="as-value" id="adExtraTDS">—</div>
+          </div>
+          <div class="adhoc-stat as-yellow">
+            <div class="as-label">Total TDS this month</div>
+            <div class="as-value" id="adTotalTDS">—</div>
+          </div>
+          <div class="adhoc-stat as-green">
+            <div class="as-label">Net received this month</div>
+            <div class="as-value" id="adNetMonth">—</div>
+          </div>
+          <div class="adhoc-stat">
+            <div class="as-label">Revised annual tax</div>
+            <div class="as-value" id="adRevAnnualTax">—</div>
+          </div>
+          <div class="adhoc-stat">
+            <div class="as-label">Tax already paid (prev months)</div>
+            <div class="as-value" id="adTaxPaid">—</div>
+          </div>
+        </div>
+        <div class="monthly-breakdown" style="border-radius:0;border:none;border-top:1px solid var(--border);">
+          <div class="mb-header">
+            <span>Component</span><span>Without Adhoc</span><span>With Adhoc</span>
+          </div>
+          <div class="mb-row">
+            <span class="r-label">Annual income</span>
+            <span class="r-annual" id="adCmpIncome1">—</span>
+            <span class="r-monthly" id="adCmpIncome2">—</span>
+          </div>
+          <div class="mb-row">
+            <span class="r-label">Taxable income</span>
+            <span class="r-annual" id="adCmpTaxable1">—</span>
+            <span class="r-monthly" id="adCmpTaxable2">—</span>
+          </div>
+          <div class="mb-row r-deduction">
+            <span class="r-label">Annual tax</span>
+            <span class="r-annual" id="adCmpTax1">—</span>
+            <span class="r-monthly" id="adCmpTax2">—</span>
+          </div>
+          <div class="mb-row r-takehome">
+            <span class="r-label">Net take-home this month</span>
+            <span class="r-annual" id="adCmpNet1">—</span>
+            <span class="r-monthly" id="adCmpNet2">—</span>
+          </div>
+        </div>
+        <div class="adhoc-explanation" id="adhocExplanation"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    TaxLens is for informational purposes only · Finance Act FY 2026–27<br>
+    EPF/NPS: Sections 80C, 80CCD(1B), 80CCD(2) · Surcharge &amp; marginal relief included · Consult a CA for official ITR filing
+  </footer>
+</div>
+
+<script>
+  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const g   = id => parseFloat(document.getElementById(id).value) || 0;
+
+  function toggleSection(type) {
+    const on = document.getElementById(type + 'Enabled').checked;
+    document.getElementById(type + 'Fields').classList.toggle('active', on);
+    updateComputed();
+  }
+
+  function updateComputed() {
+    const basic = g('basicSalary');
+    const gross = g('grossSalary');
+    const sec80c = g('sec80c');
+
+    if (document.getElementById('epfEnabled').checked) {
+      const ep = Math.min(Math.max(g('epfEmpPct'), 0), 12);
+      const er = Math.min(Math.max(g('epfErPct'),  0), 12);
+      const empAmt = basic * ep / 100;
+      const erAmt  = basic * er / 100;
+      document.getElementById('epfEmployeeAmt').textContent = fmt(empAmt);
+      document.getElementById('epfEmployerAmt').textContent = fmt(erAmt);
+      const headroom = Math.max(0, 150000 - empAmt - sec80c);
+      document.getElementById('epf80cLeft').textContent = fmt(headroom);
+
+      // New regime EPF deduction preview
+      const erNewOn  = document.getElementById('epfErNewEnabled').checked;
+      const empNewOn = document.getElementById('epfEmpNewEnabled').checked;
+      const newDed = (erNewOn ? erAmt : 0) + (empNewOn ? empAmt : 0);
+      document.getElementById('epfNewDeductionAmt').textContent = fmt(newDed);
+    }
+
+    if (document.getElementById('npsEnabled').checked) {
+      const ep = Math.max(g('npsEmpPct'), 0);
+      const er = Math.min(Math.max(g('npsErPct'), 0), 14);
+      const empAmt = gross * ep / 100;
+      const erAmt  = basic * er / 100;
+      const ccd1b  = Math.min(empAmt, 50000);
+      const ccd2Old = Math.min(erAmt, basic * 0.10);
+      const ccd2New = Math.min(erAmt, basic * 0.14);
+      document.getElementById('npsEmployeeAmt').textContent = fmt(empAmt);
+      document.getElementById('npsEmployerAmt').textContent = fmt(erAmt);
+      document.getElementById('nps80ccd1bAmt').textContent  = fmt(ccd1b);
+      document.getElementById('nps80ccd2OldAmt').textContent = fmt(ccd2Old);
+      document.getElementById('nps80ccd2NewAmt').textContent = fmt(ccd2New);
+    }
+  }
+
+  // ─── TAX COMPUTATION ───
+
+  function calculateHRA(basic, hraRec, rent, city) {
+    if (!rent || !hraRec) return 0;
+    const pct = city === 'metro' ? 0.5 : 0.4;
+    return Math.min(hraRec, pct * basic, Math.max(0, rent - 0.1 * basic));
+  }
+
+  function oldSlabTax(inc) {
+    if (inc <= 0) return 0;
+    let t = 0;
+    if (inc > 1000000) t += (inc - 1000000) * 0.30;
+    if (inc >  500000) t += (Math.min(inc, 1000000) -  500000) * 0.20;
+    if (inc >  250000) t += (Math.min(inc,  500000) -  250000) * 0.05;
+    return t;
+  }
+
+  function newSlabTax(inc) {
+    if (inc <= 0) return 0;
+    const slabs = [[400000,0],[800000,.05],[1200000,.10],[1600000,.15],[2000000,.20],[2400000,.25]];
+    let t = 0, prev = 0;
+    for (const [lim, rate] of slabs) {
+      if (inc > prev) { t += (Math.min(inc, lim) - prev) * rate; prev = lim; }
+    }
+    if (inc > 2400000) t += (inc - 2400000) * 0.30;
+    return t;
+  }
+
+  // Surcharge is applied on TAXABLE INCOME (total income after deductions), NOT gross salary.
+  // Thresholds: >50L=10%, >1Cr=15%, >2Cr=25%, >5Cr=37% (old) / 25% capped (new)
+  function surchargeRate(taxableIncome, regime) {
+    if      (taxableIncome > 50000000) return regime === 'new' ? 0.25 : 0.37;
+    else if (taxableIncome > 20000000) return 0.25;
+    else if (taxableIncome > 10000000) return 0.15;
+    else if (taxableIncome >  5000000) return 0.10;
+    return 0;
+  }
+
+  function marginalRelief(taxableIncome, taxWithSurcharge, slabFn, threshold, regime) {
+    // Tax should not exceed: tax-at-threshold + income above threshold
+    const taxAtThreshold = slabFn(threshold);
+    const surchargeAtThreshold = taxAtThreshold * surchargeRate(threshold, regime);
+    const totalAtThreshold = taxAtThreshold + surchargeAtThreshold;
+    const maxTax = totalAtThreshold + (taxableIncome - threshold);
+    return taxWithSurcharge > maxTax ? maxTax : taxWithSurcharge;
+  }
+
+  function calcTax(taxableIncome, slabFn, regime) {
+    let base = slabFn(taxableIncome);
+
+    // Rebate u/s 87A — applied on taxable income thresholds
+    let rebate = 0;
+    if (regime === 'old' && taxableIncome <= 500000)  rebate = Math.min(base, 12500);
+    if (regime === 'new' && taxableIncome <= 1200000) rebate = Math.min(base, 60000);
+    let afterRebate = Math.max(0, base - rebate);
+
+    // Surcharge — only when TAXABLE INCOME exceeds ₹50L (5000000)
+    let surcharge = 0, taxWS = afterRebate;
+    if (taxableIncome > 5000000) {
+      surcharge = afterRebate * surchargeRate(taxableIncome, regime);
+      taxWS = afterRebate + surcharge;
+
+      // Apply marginal relief at each surcharge threshold boundary
+      for (const threshold of [5000000, 10000000, 20000000, 50000000]) {
+        if (taxableIncome > threshold) {
+          taxWS = marginalRelief(taxableIncome, taxWS, slabFn, threshold, regime);
+        }
+      }
+      surcharge = taxWS - afterRebate;
+    }
+
+    const cess = taxWS * 0.04;
+    return { base, rebate, surcharge: Math.max(0, surcharge), cess, total: Math.max(0, taxWS + cess) };
+  }
+
+  // ─── MAIN ───
+
+  function calculate() {
+    const gross   = g('grossSalary');
+    const basic   = g('basicSalary');
+    const hraRec  = g('hraReceived');
+    const rent    = g('rentPaid');
+    const city    = document.getElementById('cityType').value;
+    const sec80c  = g('sec80c');
+    const sec80d  = g('sec80d');
+    const otherD  = g('otherDed');
+
+    const errEl = document.getElementById('errorMsg');
+    if (gross <= 0) { errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+
+    // ── EPF ──
+    const epfOn = document.getElementById('epfEnabled').checked;
+    let epfEmpAmt = 0, epfErAmt = 0;
+    let epfErNewOn = false, epfEmpNewOn = false;
+    if (epfOn) {
+      epfEmpAmt  = basic * Math.min(g('epfEmpPct'), 12) / 100;
+      epfErAmt   = basic * Math.min(g('epfErPct'),  12) / 100;
+      epfErNewOn  = document.getElementById('epfErNewEnabled').checked;
+      epfEmpNewOn = document.getElementById('epfEmpNewEnabled').checked;
+    }
+    // New regime: employer EPF tax-free (if toggled on), employee EPF net deduction (if toggled on)
+    const epfNewDed = epfOn ? ((epfErNewOn ? epfErAmt : 0) + (epfEmpNewOn ? epfEmpAmt : 0)) : 0;
+
+    // ── NPS ──
+    const npsOn = document.getElementById('npsEnabled').checked;
+    let npsEmpAmt = 0, npsErAmt = 0;
+    let nps80ccd1b = 0, nps80ccd2Old = 0, nps80ccd2New = 0;
+    if (npsOn) {
+      npsEmpAmt    = gross * Math.max(g('npsEmpPct'), 0) / 100;
+      npsErAmt     = basic * Math.min(g('npsErPct'), 14) / 100;
+      nps80ccd1b   = Math.min(npsEmpAmt, 50000);          // Old regime extra deduction
+      nps80ccd2Old = Math.min(npsErAmt, basic * 0.10);    // Old regime employer NPS
+      nps80ccd2New = Math.min(npsErAmt, basic * 0.14);    // New regime employer NPS
+    }
+
+    // ── HRA ──
+    const hraEx = calculateHRA(basic, hraRec, rent, city);
+
+    // ── OLD REGIME taxable income ──
+    // 80C = manual sec80c + EPF employee share, capped at 1.5L
+    const total80C   = Math.min(sec80c + epfEmpAmt, 150000);
+    const totalDedOld = total80C + sec80d + otherD + nps80ccd1b + nps80ccd2Old;
+    const taxableOld  = Math.max(0, gross - 50000 - hraEx - totalDedOld);
+
+    // ── NEW REGIME taxable income ──
+    // 80CCD(2) employer NPS allowed. EPF employer/employee deductions only if user toggled ON.
+    const taxableNew  = Math.max(0, gross - 75000 - nps80ccd2New - epfNewDed);
+
+    const oldR = calcTax(taxableOld, oldSlabTax, 'old');
+    const newR = calcTax(taxableNew, newSlabTax, 'new');
+
+    // ── RENDER ──
+    document.getElementById('placeholder').style.display = 'none';
+    const res = document.getElementById('results');
+    res.style.display = 'block';
+    res.classList.add('animate-in');
+
+    document.getElementById('surchargeNote').style.display = (taxableOld > 5000000 || taxableNew > 5000000) ? 'block' : 'none';
+
+    // Chips
+    const anyContrib = epfOn || npsOn;
+    document.getElementById('contribSummary').style.display = anyContrib ? 'flex' : 'none';
+    const chip = (id, show, val) => {
+      const el = document.getElementById(id);
+      el.style.display = show ? 'flex' : 'none';
+      if (show) document.getElementById(id + 'Val').textContent = fmt(val);
+    };
+    chip('chipEpfEmp', epfOn && epfEmpAmt > 0, epfEmpAmt);
+    chip('chipEpfEr',  epfOn && epfErAmt  > 0, epfErAmt);
+    chip('chipNpsEmp', npsOn && npsEmpAmt > 0, npsEmpAmt);
+    chip('chipNpsEr',  npsOn && npsErAmt  > 0, npsErAmt);
+
+    // Tax cards
+    document.getElementById('oldTaxDisplay').textContent = fmt(oldR.total);
+    document.getElementById('newTaxDisplay').textContent = fmt(newR.total);
+
+    // Winner
+    const oldCard = document.getElementById('oldCard');
+    const newCard = document.getElementById('newCard');
+    oldCard.classList.remove('winner'); newCard.classList.remove('winner');
+    document.querySelectorAll('.winner-badge').forEach(e => e.remove());
+    const badge = '<span class="winner-badge">✓ Better</span>';
+    if (oldR.total < newR.total) { oldCard.classList.add('winner'); oldCard.insertAdjacentHTML('beforeend', badge); }
+    else if (newR.total < oldR.total) { newCard.classList.add('winner'); newCard.insertAdjacentHTML('beforeend', badge); }
+
+    // Recommendation
+    const saving = Math.abs(oldR.total - newR.total);
+    let recText = '', recSaving = '';
+    if (oldR.total < newR.total) {
+      recText = '🏆 Old Regime is better for you.';
+      const reasons = [];
+      if (hraEx > 0) reasons.push(`HRA exemption of ${fmt(hraEx)}`);
+      if (total80C >= 100000) reasons.push(`80C investments of ${fmt(total80C)}`);
+      if (nps80ccd1b > 0) reasons.push(`NPS 80CCD(1B) ₹${Math.round(nps80ccd1b/1000)}K extra deduction`);
+      if (nps80ccd2Old > 0) reasons.push(`Employer NPS 80CCD(2) of ${fmt(nps80ccd2Old)}`);
+      if (reasons.length) recText += ' Driven by: ' + reasons.join(' · ') + '.';
+      recSaving = `You save ${fmt(saving)} by choosing Old Regime.`;
+    } else if (newR.total < oldR.total) {
+      recText = '🏆 New Regime is better for you.';
+      const reasons = [];
+      if (totalDedOld < 100000) reasons.push('low deductions make new regime\'s lower slabs more valuable');
+      if (nps80ccd2New > nps80ccd2Old) reasons.push(`higher employer NPS deduction in new regime (${fmt(nps80ccd2New)} vs ${fmt(nps80ccd2Old)})`);
+      if (gross > 50000000) reasons.push('25% surcharge cap in new regime');
+      if (epfOn && epfNewDed > 0) reasons.push(`EPF deduction of ${fmt(epfNewDed)} applied in new regime`);
+      if (reasons.length) recText += ' Reasons: ' + reasons.join(' · ') + '.';
+      recSaving = `You save ${fmt(saving)} by choosing New Regime.`;
+    } else {
+      recText = '⚖️ Both regimes result in equal tax for your profile.';
+      recSaving = 'No difference in liability.';
+    }
+    document.getElementById('recText').textContent = recText;
+    document.getElementById('recSaving').textContent = recSaving;
+
+    // Breakdown
+    const showRow = (id, show) => { document.getElementById(id).style.display = show ? '' : 'none'; };
+
+    document.getElementById('bGrossOld').textContent = fmt(gross);
+    document.getElementById('bGrossNew').textContent = fmt(gross);
+    document.getElementById('bHraOld').textContent = hraEx > 0 ? fmt(hraEx) : '—';
+
+    showRow('rowEpfEmp', epfOn && epfEmpAmt > 0);
+    document.getElementById('bEpfEmp').textContent = epfOn ? fmt(epfEmpAmt) : '—';
+
+    // New regime employee EPF row — only show if toggled on
+    showRow('rowEpfEmpNew', epfOn && epfEmpNewOn && epfEmpAmt > 0);
+    document.getElementById('bEpfEmpNew').textContent = (epfOn && epfEmpNewOn) ? fmt(epfEmpAmt) : '—';
+
+    showRow('rowEpfEr', epfOn && epfErAmt > 0);
+    document.getElementById('bEpfErOld').textContent = epfOn ? fmt(epfErAmt) : '—';
+    // New regime employer EPF — show actual value if toggled on, dash if not
+    document.getElementById('bEpfErNew').textContent = epfOn ? (epfErNewOn ? fmt(epfErAmt) : '✗ excluded') : '—';
+
+    showRow('rowNps80ccd1b', npsOn && nps80ccd1b > 0);
+    document.getElementById('bNps1bOld').textContent = npsOn ? fmt(nps80ccd1b) : '—';
+
+    showRow('rowNps80ccd2', npsOn);
+    document.getElementById('bNps2Old').textContent = npsOn ? fmt(nps80ccd2Old) : '—';
+    document.getElementById('bNps2New').textContent = npsOn ? fmt(nps80ccd2New) : '—';
+
+    document.getElementById('bOtherDed').textContent = fmt(sec80c + sec80d + otherD);
+    document.getElementById('bTaxableOld').textContent = fmt(taxableOld);
+    document.getElementById('bTaxableNew').textContent = fmt(taxableNew);
+    document.getElementById('bBaseTaxOld').textContent = fmt(oldR.base);
+    document.getElementById('bBaseTaxNew').textContent = fmt(newR.base);
+    document.getElementById('bRebateOld').textContent = oldR.rebate > 0 ? '−' + fmt(oldR.rebate) : '—';
+    document.getElementById('bRebateNew').textContent = newR.rebate > 0 ? '−' + fmt(newR.rebate) : '—';
+    document.getElementById('bSurchargeOld').textContent = oldR.surcharge > 0 ? fmt(oldR.surcharge) : '—';
+    document.getElementById('bSurchargeNew').textContent = newR.surcharge > 0 ? fmt(newR.surcharge) : '—';
+    document.getElementById('bCessOld').textContent = fmt(oldR.cess);
+    document.getElementById('bCessNew').textContent = fmt(newR.cess);
+    document.getElementById('bTotalOld').textContent = fmt(oldR.total);
+    document.getElementById('bTotalNew').textContent = fmt(newR.total);
+
+    // Chart
+    const maxTax = Math.max(oldR.total, newR.total, 1);
+    document.getElementById('chartOldLabel').textContent = fmt(oldR.total);
+    document.getElementById('chartNewLabel').textContent = fmt(newR.total);
+    setTimeout(() => {
+      document.getElementById('barOld').style.width = (oldR.total / maxTax * 100) + '%';
+      document.getElementById('barNew').style.width = (newR.total / maxTax * 100) + '%';
+    }, 50);
+
+    // ── Store state & show take-home section ──
+    _thState = {
+      gross, basic, sec80c, sec80d, otherD, hraEx,
+      taxableOld, taxableNew, oldR, newR,
+      epfOn, epfEmpAmt, epfErAmt, epfNewDed,
+      npsOn, npsEmpAmt, npsErAmt, nps80ccd1b, nps80ccd2Old, nps80ccd2New,
+    };
+
+    // Set active tab to the winning regime
+    const winRegime = oldR.total <= newR.total ? 'old' : 'new';
+    switchRegimeTab(winRegime);
+
+    document.getElementById('takeHomeSectionWrap').style.display = 'block';
+    document.getElementById('adhocResults').classList.remove('show');
+    renderTakeHome(winRegime);
+  }
+
+
+  // ═══════════════════════════════════════════
+  // MONTHLY TAKE-HOME + ADHOC LOGIC
+  // ═══════════════════════════════════════════
+
+  // Global state set by calculate()
+  let _thState = null;
+
+  function switchRegimeTab(regime) {
+    document.getElementById('tabOld').className = 'regime-tab' + (regime === 'old' ? ' active-old' : '');
+    document.getElementById('tabNew').className = 'regime-tab' + (regime === 'new' ? ' active-new' : '');
+    if (_thState) renderTakeHome(regime);
+  }
+
+  function getActiveRegime() {
+    return document.getElementById('tabOld').classList.contains('active-old') ? 'old' : 'new';
+  }
+
+  function renderTakeHome(forceRegime) {
+    if (!_thState) return;
+    const regime = forceRegime || getActiveRegime();
+    const s = _thState;
+
+    const annualTax    = regime === 'old' ? s.oldR.total : s.newR.total;
+    const taxableInc   = regime === 'old' ? s.taxableOld : s.taxableNew;
+    const profTax      = Math.min(parseFloat(document.getElementById('profTax').value) || 0, 2500);
+    const otherMonthly = parseFloat(document.getElementById('otherMonthlyDed').value) || 0;
+
+    // Compute EPF/NPS employee deductions for take-home
+    const epfEmpAnnual = s.epfOn ? s.epfEmpAmt : 0;
+    const npsEmpAnnual = s.npsOn ? s.npsEmpAmt : 0;
+
+    const monthlyTDS        = annualTax / 12;
+    const monthlyEpf        = epfEmpAnnual / 12;
+    const monthlyNps        = npsEmpAnnual / 12;
+    const monthlyProfTax    = profTax / 12;
+    const monthlyOther      = otherMonthly;
+
+    const monthlyGross      = s.gross / 12;
+    const totalMonthlyDed   = monthlyTDS + monthlyEpf + monthlyNps + monthlyProfTax + monthlyOther;
+    const monthlyNet        = monthlyGross - totalMonthlyDed;
+    const effRate           = s.gross > 0 ? (annualTax / s.gross * 100) : 0;
+
+    const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+
+    set('thGross',      fmt(s.gross));
+    set('thAnnualTax',  fmt(annualTax));
+    set('thMonthlyTDS', fmt(monthlyTDS));
+    set('thMonthlyNet', fmt(monthlyNet));
+    set('thEffRate',    effRate.toFixed(2) + '%');
+
+    set('mbGrossA',  fmt(s.gross));
+    set('mbGrossM',  fmt(monthlyGross));
+    set('mbEpfEmpA', epfEmpAnnual > 0 ? fmt(epfEmpAnnual) : '—');
+    set('mbEpfEmpM', epfEmpAnnual > 0 ? fmt(monthlyEpf)   : '—');
+    set('mbNpsEmpA', npsEmpAnnual > 0 ? fmt(npsEmpAnnual) : '—');
+    set('mbNpsEmpM', npsEmpAnnual > 0 ? fmt(monthlyNps)   : '—');
+    set('mbTdsA',    fmt(annualTax));
+    set('mbTdsM',    fmt(monthlyTDS));
+    set('mbProfTaxA', profTax > 0 ? fmt(profTax)       : '—');
+    set('mbProfTaxM', profTax > 0 ? fmt(monthlyProfTax) : '—');
+    set('mbTotalDedA', fmt((totalMonthlyDed) * 12));
+    set('mbTotalDedM', fmt(totalMonthlyDed));
+    set('mbNetA',    fmt(monthlyNet * 12));
+    set('mbNetM',    fmt(monthlyNet));
+
+    document.getElementById('mbEpfEmpRow').style.display = epfEmpAnnual > 0 ? '' : 'none';
+    document.getElementById('mbNpsEmpRow').style.display = npsEmpAnnual > 0 ? '' : 'none';
+    document.getElementById('mbProfTaxRow').style.display = profTax > 0 ? '' : 'none';
+
+    // Store for adhoc
+    _thState._regime      = regime;
+    _thState._annualTax   = annualTax;
+    _thState._taxableInc  = taxableInc;
+    _thState._monthlyNet  = monthlyNet;
+    _thState._monthlyTDS  = monthlyTDS;
+    _thState._profTax     = profTax;
+    _thState._otherMonthly = otherMonthly;
+    _thState._epfEmpAnnual = epfEmpAnnual;
+    _thState._npsEmpAnnual = npsEmpAnnual;
+  }
+
+  function calcAdhoc() {
+    if (!_thState) { alert('Please calculate your tax first.'); return; }
+
+    const adhocAmt  = parseFloat(document.getElementById('adhocAmount').value) || 0;
+    const month     = parseInt(document.getElementById('adhocMonth').value);
+    const s         = _thState;
+    const regime    = s._regime || getActiveRegime();
+
+    if (adhocAmt <= 0) { alert('Please enter an adhoc amount > 0.'); return; }
+
+    // Months remaining in FY from the adhoc month (inclusive)
+    const monthsRemaining = 13 - month;   // April=1 → 12 remaining, March=12 → 1 remaining
+
+    // Tax already paid before this month
+    const monthsPaid      = month - 1;
+    const taxAlreadyPaid  = (s._annualTax / 12) * monthsPaid;
+
+    // Revised annual income with adhoc
+    const revisedGross    = s.gross + adhocAmt;
+
+    // Recalculate taxable income for the revised gross
+    let revisedTaxable;
+    if (regime === 'old') {
+      const total80C     = Math.min((s.sec80c || 0) + s.epfEmpAmt, 150000);
+      const totalDedOld  = total80C + (s.sec80d || 0) + (s.otherD || 0) + s.nps80ccd1b + s.nps80ccd2Old;
+      revisedTaxable = Math.max(0, revisedGross - 50000 - s.hraEx - totalDedOld);
+    } else {
+      revisedTaxable = Math.max(0, revisedGross - 75000 - s.nps80ccd2New - s.epfNewDed);
+    }
+
+    const slabFn         = regime === 'old' ? oldSlabTax : newSlabTax;
+    const revisedTaxRes  = calcTax(revisedTaxable, slabFn, regime);
+    const revisedAnnualTax = revisedTaxRes.total;
+
+    // Tax remaining to be collected over months >= current month
+    const taxRemaining   = Math.max(0, revisedAnnualTax - taxAlreadyPaid);
+    const newMonthlyTDS  = taxRemaining / monthsRemaining;
+
+    // Normal monthly TDS (without adhoc) for remaining months
+    const normalTaxRemaining = Math.max(0, s._annualTax - taxAlreadyPaid);
+    const normalMonthlyTDS   = normalTaxRemaining / monthsRemaining;
+
+    const extraTDS       = newMonthlyTDS - normalMonthlyTDS;
+
+    // What the employee actually gets in that month
+    const monthlyGross   = s.gross / 12;
+    const netNormal      = s._monthlyNet;
+    const netWithAdhoc   = monthlyGross + adhocAmt
+                           - newMonthlyTDS
+                           - (s._epfEmpAnnual / 12)
+                           - (s._npsEmpAnnual / 12)
+                           - (s._profTax / 12)
+                           - (s._otherMonthly);
+
+    const monthNames = ['','April','May','June','July','August','September','October','November','December','January','February','March'];
+
+    const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+
+    document.getElementById('adhocResultHeader').textContent =
+      `${monthNames[month]} Simulation — ${regime === 'old' ? 'Old' : 'New'} Regime`;
+
+    set('adAmt',          fmt(adhocAmt));
+    set('adExtraTDS',     fmt(extraTDS));
+    set('adTotalTDS',     fmt(newMonthlyTDS));
+    set('adNetMonth',     fmt(netWithAdhoc));
+    set('adRevAnnualTax', fmt(revisedAnnualTax));
+    set('adTaxPaid',      fmt(taxAlreadyPaid));
+
+    set('adCmpIncome1',  fmt(s.gross));
+    set('adCmpIncome2',  fmt(revisedGross));
+    set('adCmpTaxable1', fmt(regime === 'old' ? s.taxableOld : s.taxableNew));
+    set('adCmpTaxable2', fmt(revisedTaxable));
+    set('adCmpTax1',     fmt(s._annualTax));
+    set('adCmpTax2',     fmt(revisedAnnualTax));
+    set('adCmpNet1',     fmt(netNormal));
+    set('adCmpNet2',     fmt(netWithAdhoc));
+
+    // Explanation
+    const expPct = s.gross > 0 ? ((extraTDS / adhocAmt) * 100).toFixed(1) : 0;
+    document.getElementById('adhocExplanation').innerHTML =
+      `<strong style="color:var(--text)">How this works:</strong> Your employer spreads the remaining annual tax ` +
+      `(₹${Math.round(revisedAnnualTax).toLocaleString('en-IN')} − ₹${Math.round(taxAlreadyPaid).toLocaleString('en-IN')} already paid) ` +
+      `over the <strong style="color:var(--accent)">${monthsRemaining} remaining month${monthsRemaining>1?'s':''}</strong> of the FY. ` +
+      `The adhoc of ${fmt(adhocAmt)} pushes your revised annual tax up by ${fmt(revisedAnnualTax - s._annualTax)}, ` +
+      `so you effectively pay <strong style="color:var(--red)">${expPct}%</strong> of your bonus as extra TDS this month. ` +
+      `You still receive <strong style="color:var(--green)">${fmt(netWithAdhoc)}</strong> in hand — vs your normal ${fmt(netNormal)}.`;
+
+    document.getElementById('adhocResults').classList.add('show');
+  }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>
